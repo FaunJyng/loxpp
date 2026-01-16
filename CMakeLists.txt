@@ -8,6 +8,7 @@ project(clox
 
 add_executable(
     main
+	ast_printer.cpp
     literal.cpp
     lox.cpp
     main.cpp

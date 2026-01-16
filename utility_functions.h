@@ -3,16 +3,19 @@
 
 #include <iostream>
 
-template <typename... Args>
-void print( Args&&... args )
+namespace util
 {
-	( std::cout << ... << std::forward<Args>( args ) );
-}
+	template <typename... Args>
+	void print( Args&&... args )
+	{
+		( std::cout << ... << std::forward<Args>( args ) );
+	}
 
-template <typename... Args>
-void println( Args&&... args )
-{
-	( std::cout << ... << std::forward<Args>( args ) ) << '\n';
-}
+	template <typename... Args>
+	void println( Args&&... args )
+	{
+		( std::cout << ... << std::forward<Args>( args ) ) << '\n';
+	}
+} // namespace util
 
 #endif

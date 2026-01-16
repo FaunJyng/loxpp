@@ -59,18 +59,18 @@ public:
 private:
 	const std::string m_lexeme;
 	const std::optional<literal> m_literal;
-	const type m_ttype;
+	const token::type m_ttype;
 	const int m_line;
 
 public:
-	token( std::string lexeme, std::optional<literal> literal, type ttype, int line )
+	token( std::string lexeme, std::optional<literal> literal, token::type ttype, int line )
 		: m_lexeme{ std::move( lexeme ) }, m_literal{ std::move( literal ) }, m_ttype{ ttype }, m_line{ line } {};
-	token( std::string lexeme, type ttype, int line )
+	token( std::string lexeme, token::type ttype, int line )
 		: token{ std::move( lexeme ), std::nullopt, ttype, line } {};
 
 	const std::string& lexeme() const { return m_lexeme; }
 	const std::optional<literal>& literal() const { return m_literal; }
-	type ttype() const { return m_ttype; }
+	token::type ttype() const { return m_ttype; }
 	int line() const { return m_line; }
 
 	friend std::ostream& operator<<( std::ostream& os, const token::type& token_type );

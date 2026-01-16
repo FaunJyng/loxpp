@@ -2,9 +2,9 @@
 #include "literal.h"
 #include "lox.h"
 #include "token.h"
+#include <string>
 
-const std::vector<token>& scanner::scan_tokens()
-{
+const std::vector<token>& scanner::scan_tokens() {
 	while ( !is_at_end() ) {
 		m_start = m_current;
 		scan_token();
@@ -18,13 +18,7 @@ const std::vector<token>& scanner::scan_tokens()
 	return m_tokens;
 }
 
-bool scanner::is_at_end() const
-{
-	return m_current >= m_source.length();
-}
-
-void scanner::scan_token()
-{
+void scanner::scan_token() {
 	char c = advance();
 	switch ( c ) {
 		case '(':
@@ -91,6 +85,8 @@ void scanner::scan_token()
 		default:
 			if ( is_digit( c ) ) {
 				number();
+			} else if ( is_alpha( c ) ) {
+				identifier();
 			} else {
 				m_lox.error( m_line, "unexpected character." );
 			}
@@ -98,39 +94,57 @@ void scanner::scan_token()
 	}
 }
 
-char scanner::advance()
-{
+char scanner::advance() {
 	return m_source[ m_current++ ];
 }
 
-void scanner::add_token( token::type ttype )
-{
+void scanner::add_token( token::type ttype ) {
 	add_token( ttype, std::nullopt );
 }
 
-void scanner::add_token( token::type ttype, std::optional<literal> literal )
-{
+void scanner::add_token( token::type ttype, std::optional<literal> literal ) {
 	std::string text{ m_source.substr( m_start, m_current - m_start ) };
 	m_tokens.emplace_back( std::move( text ), std::move( literal ), ttype, m_line );
 }
 
-bool scanner::match( char expected )
-{
+char scanner::peek() const {
+	if ( is_at_end() )
+		return '\0';
+	return m_source[ m_current ];
+}
+
+char scanner::peek_next() const {
+	if ( m_current + 1 >= m_source.length() )
+		return '\0';
+	return m_source.at( m_current + 1 );
+}
+
+bool scanner::match( char expected ) {
 	if ( is_at_end() || m_source[ m_current ] != expected )
 		return false;
 	++m_current;
 	return true;
 }
 
-char scanner::peek() const
-{
-	if ( is_at_end() )
-		return '\0';
-	return m_source[ m_current ];
+bool scanner::is_at_end() const {
+	return m_current >= m_source.length();
 }
 
-void scanner::string()
-{
+bool scanner::is_digit( char c ) const {
+	return c >= '0' && c <= '9';
+}
+
+bool scanner::is_alpha( char c ) const {
+	return ( c >= 'a' && c <= 'z' ) ||
+		   ( c >= 'A' && c <= 'Z' ) ||
+		   c == '_';
+}
+
+bool scanner::is_aplha_numeric( char c ) const {
+	return is_alpha( c ) || is_digit( c );
+}
+
+void scanner::string() {
 	while ( peek() != '"' && !is_at_end() ) {
 		if ( peek() == '\n' )
 			++m_line;
@@ -150,13 +164,32 @@ void scanner::string()
 			m_source.substr( m_start + 1, m_current - ( m_start + 1 ) - 1 ) } );
 }
 
-bool scanner::is_digit( char c )
-{
-	return c >= '0' && c <= '9';
-}
-
-void scanner::number()
-{
+void scanner::number() {
 	while ( is_digit( peek() ) )
 		advance();
+	if ( peek() == '.' && is_digit( peek_next() ) ) {
+		advance();
+		while ( is_digit( peek() ) )
+			advance();
+	}
+	add_token(
+		token::type::k_number,
+		std::stod(
+			m_source.substr( m_start, m_current - m_start ) ) );
+}
+
+void scanner::identifier() {
+	while ( is_aplha_numeric( peek() ) )
+		advance();
+
+	token::type ttype;
+
+	auto it{
+		keywords.find(
+			m_source.substr( m_start, m_current - m_start ) ) };
+
+	if ( it == keywords.end() )
+		ttype = token::type::k_identifier;
+
+	add_token( ttype );
 }

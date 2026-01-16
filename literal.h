@@ -2,15 +2,22 @@
 #define LITERAL_H
 
 #include <string>
+#include <variant>
 
-class literal
-{
-private:
-	const std::string v;
+class literal {
+	public:
+		using literal_t = std::variant<double, std::string>;
 
-public:
-	literal( std::string_view value ) : v{ value } {};
-	const std::string& value() const { return v; }
+	private:
+		const literal_t v;
+
+	public:
+		literal( double value ) : v{ value } {};
+		literal( std::string_view value ) : v{ std::string{ value } } {};
+		const literal_t& value() const { return v; }
+
+		bool is_number() const;
+		bool is_string() const;
 };
 
 #endif

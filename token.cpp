@@ -4,8 +4,7 @@
 
 // token::type
 
-std::ostream& operator<<( std::ostream& os, const token::type& token_type )
-{
+std::ostream& operator<<( std::ostream& os, const token::type& token_type ) {
 	switch ( token_type ) {
 		case token::type::k_left_paren:
 			return os << "left_paren";
@@ -89,11 +88,16 @@ std::ostream& operator<<( std::ostream& os, const token::type& token_type )
 	return os << "unknown";
 }
 
-std::ostream& operator<<( std::ostream& os, const token& token )
-{
+std::ostream& operator<<( std::ostream& os, const token& token ) {
 	os << token.ttype() << " " << token.lexeme() << " ";
+
 	if ( token.literal().has_value() ) {
-		return os << token.literal()->value();
+		std::visit(
+			[ & ]( const auto& v ) {
+				os << v;
+			},
+			token.literal()->value() );
 	}
-	return os << "";
+
+	return os;
 }
