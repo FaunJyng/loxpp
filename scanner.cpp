@@ -1,11 +1,10 @@
 #include "scanner.h"
-#include "literal.h"
 #include "lox.h"
-#include "token.h"
-#include <string>
 
-const std::vector<token>& scanner::scan_tokens() {
-	while ( !is_at_end() ) {
+const std::vector<token>& scanner::scan_tokens()
+{
+	while ( !is_at_end() )
+	{
 		m_start = m_current;
 		scan_token();
 	}
@@ -18,9 +17,11 @@ const std::vector<token>& scanner::scan_tokens() {
 	return m_tokens;
 }
 
-void scanner::scan_token() {
+void scanner::scan_token()
+{
 	char c = advance();
-	switch ( c ) {
+	switch ( c )
+	{
 		case '(':
 			add_token( token::type::k_left_paren );
 			break;
@@ -64,11 +65,15 @@ void scanner::scan_token() {
 			add_token( match( '=' ) ? token::type::k_greater_equal : token::type::k_greater );
 			break;
 		case '/':
-			if ( match( '=' ) ) {
-				while ( peek() != '\n' && !is_at_end() ) {
+			if ( match( '=' ) )
+			{
+				while ( peek() != '\n' && !is_at_end() )
+				{
 					advance();
 				}
-			} else {
+			}
+			else
+			{
 				add_token( token::type::k_slash );
 			}
 			break;
@@ -83,76 +88,94 @@ void scanner::scan_token() {
 			string();
 			break;
 		default:
-			if ( is_digit( c ) ) {
+			if ( is_digit( c ) )
+			{
 				number();
-			} else if ( is_alpha( c ) ) {
+			}
+			else if ( is_alpha( c ) )
+			{
 				identifier();
-			} else {
-				m_lox.error( m_line, "unexpected character." );
+			}
+			else
+			{
+				lox::error( m_line, "unexpected character." );
 			}
 			break;
 	}
 }
 
-char scanner::advance() {
+char scanner::advance()
+{
 	return m_source[ m_current++ ];
 }
 
-void scanner::add_token( token::type ttype ) {
+void scanner::add_token( token::type ttype )
+{
 	add_token( ttype, std::nullopt );
 }
 
-void scanner::add_token( token::type ttype, std::optional<literal> literal ) {
+void scanner::add_token( token::type ttype, std::optional<literal> literal )
+{
 	std::string text{ m_source.substr( m_start, m_current - m_start ) };
 	m_tokens.emplace_back( std::move( text ), std::move( literal ), ttype, m_line );
 }
 
-char scanner::peek() const {
+char scanner::peek() const
+{
 	if ( is_at_end() )
 		return '\0';
 	return m_source[ m_current ];
 }
 
-char scanner::peek_next() const {
+char scanner::peek_next() const
+{
 	if ( m_current + 1 >= m_source.length() )
 		return '\0';
 	return m_source.at( m_current + 1 );
 }
 
-bool scanner::match( char expected ) {
+bool scanner::match( char expected )
+{
 	if ( is_at_end() || m_source[ m_current ] != expected )
 		return false;
 	++m_current;
 	return true;
 }
 
-bool scanner::is_at_end() const {
+bool scanner::is_at_end() const
+{
 	return m_current >= m_source.length();
 }
 
-bool scanner::is_digit( char c ) const {
+bool scanner::is_digit( char c ) const
+{
 	return c >= '0' && c <= '9';
 }
 
-bool scanner::is_alpha( char c ) const {
+bool scanner::is_alpha( char c ) const
+{
 	return ( c >= 'a' && c <= 'z' ) ||
 		   ( c >= 'A' && c <= 'Z' ) ||
 		   c == '_';
 }
 
-bool scanner::is_aplha_numeric( char c ) const {
+bool scanner::is_aplha_numeric( char c ) const
+{
 	return is_alpha( c ) || is_digit( c );
 }
 
-void scanner::string() {
-	while ( peek() != '"' && !is_at_end() ) {
+void scanner::string()
+{
+	while ( peek() != '"' && !is_at_end() )
+	{
 		if ( peek() == '\n' )
 			++m_line;
 		advance();
 	}
 
-	if ( is_at_end() ) {
-		m_lox.error( m_line, "unterminated string." );
+	if ( is_at_end() )
+	{
+		lox::error( m_line, "unterminated string." );
 		return;
 	}
 
@@ -164,10 +187,12 @@ void scanner::string() {
 			m_source.substr( m_start + 1, m_current - ( m_start + 1 ) - 1 ) } );
 }
 
-void scanner::number() {
+void scanner::number()
+{
 	while ( is_digit( peek() ) )
 		advance();
-	if ( peek() == '.' && is_digit( peek_next() ) ) {
+	if ( peek() == '.' && is_digit( peek_next() ) )
+	{
 		advance();
 		while ( is_digit( peek() ) )
 			advance();
@@ -178,7 +203,8 @@ void scanner::number() {
 			m_source.substr( m_start, m_current - m_start ) ) );
 }
 
-void scanner::identifier() {
+void scanner::identifier()
+{
 	while ( is_aplha_numeric( peek() ) )
 		advance();
 
@@ -190,6 +216,8 @@ void scanner::identifier() {
 
 	if ( it == keywords.end() )
 		ttype = token::type::k_identifier;
+	else
+		ttype = it->second;
 
 	add_token( ttype );
 }

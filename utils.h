@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-namespace util
+namespace utils
 {
 	template <typename... Args>
 	void print( Args&&... args )
@@ -16,6 +16,6 @@ namespace util
 	{
 		( std::cout << ... << std::forward<Args>( args ) ) << '\n';
 	}
-} // namespace util
+} // namespace utils
 
 #endif

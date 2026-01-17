@@ -9,12 +9,12 @@ project(clox
 add_executable(
     main
 	ast_printer.cpp
-    literal.cpp
     lox.cpp
     main.cpp
+	parser.cpp
     scanner.cpp
     token.cpp
 )
 
 target_include_directories(main PRIVATE "./")
-target_compile_features(main PRIVATE cxx_std_17)
+target_compile_features(main PRIVATE cxx_std_20)

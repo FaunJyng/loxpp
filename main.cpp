@@ -1,5 +1,10 @@
-#include "main.h"
 #include "ast_printer.h"
+#include "utils.h"
+#include "lox.h"
+#include "expr.h"
+#include "token.h"
+
+#include <csignal>
 #include <memory>
 
 void test_ast_printer();
@@ -10,7 +15,7 @@ int main( int argc, char* argv[] )
 	std::signal( SIGINT, lox::sigint_handler );
 	if ( argc > 2 )
 	{
-		util::println( "Usage: clox [script]" );
+		utils::println( "Usage: clox [script]" );
 		std::exit( 64 );
 	}
 	else if ( argc == 2 )
@@ -19,8 +24,8 @@ int main( int argc, char* argv[] )
 	}
 	else
 	{
-		util::println( "Welcome to Clox v0.0.1" );
-		util::println( "Type \".help\" for more information" );
+		utils::println( "Welcome to Clox v0.0.1" );
+		utils::println( "Type \".help\" for more information" );
 		clox.run_prompt();
 	}
 }
@@ -44,5 +49,5 @@ void test_ast_printer()
 
 	ast_printer printer;
 	std::string result{ printer.print( expression ) };
-	util::print( result );
+	utils::print( result );
 }

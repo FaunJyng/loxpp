@@ -1,10 +1,14 @@
-#include "scanner.h"
-#include "utility_functions.h"
 #include "lox.h"
+
+#include "ast_printer.h"
+#include "parser.h"
+#include "scanner.h"
+#include "utils.h"
 
 #include <csignal>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -14,8 +18,8 @@ void lox::sigint_handler( int signal )
 {
 	if ( signal == SIGINT )
 	{
-		util::println( "keyboard_interuption" );
-		util::print( "> " );
+		utils::println( "keyboard_interuption" );
+		utils::print( "> " );
 	}
 	std::signal( SIGINT, sigint_handler );
 }
@@ -42,7 +46,7 @@ void lox::run_file( std::string_view path )
 void lox::run_prompt()
 {
 	std::string line;
-	util::print( "> " );
+	utils::print( "> " );
 	while ( true )
 	{
 		if ( std::getline( std::cin, line ) )
@@ -51,7 +55,7 @@ void lox::run_prompt()
 				break;
 			run( line );
 			had_error = false;
-			util::print( "> " );
+			utils::print( "> " );
 		}
 		else
 		{
@@ -65,25 +69,41 @@ void lox::error( int line, std::string_view message )
 	report( line, "", message );
 }
 
+void lox::error( const token& token, std::string_view message )
+{
+	if ( token.ttype() == token::type::k_eof )
+		report( token.line(), " at end", message );
+	else
+	{
+		std::ostringstream where{};
+		where << " at '" << token.lexeme() << "'";
+		report( token.line(), where.str(), message );
+	}
+}
+
 void lox::report( int line, std::string_view where, std::string_view message )
 {
-	util::println( "\x1b[31m[line ", line, "] Error", where, ": ", message, "\x1b[0m" );
+	utils::println( "\x1b[31m[line ", line, "] Error", where, ": ", message, "\x1b[0m" );
 	had_error = true;
 }
 
 void lox::run( std::string_view source )
 {
 	if ( source.empty() || source.length() == 0 )
-	{
-		util::print( "" );
-	}
+		utils::print( "" );
 	else
 	{
-		scanner sc{ std::string{ source }, *this };
+		scanner sc{ std::string{ source } };
 		std::vector<token> tokens = sc.scan_tokens();
-		for ( const token& token : tokens )
+		parser parser{ tokens };
+
+		std::optional<expr> expr_opt{ parser.parse() };
+		if ( expr_opt.has_value() )
 		{
-			util::println( "\033[33m", token, "\033[0m" );
+			ast_printer ast_printer{};
+			utils::println( ast_printer.print( expr_opt.value() ) );
 		}
+		else
+			return;
 	}
 }

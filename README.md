@@ -1,3 +1,3 @@
 # Loxpp
 
-Lox language implementation, using C++ (follow [Crafting Interpreters](https://craftinginterpreters.com.html "follow"))
+Lox language implementation, using C++20  (follow [Crafting Interpreters](https://craftinginterpreters.com.html "follow"))
