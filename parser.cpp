@@ -58,11 +58,44 @@ const token& parser::advance()
 	return previous();
 }
 
+// expression -> comma
 parser::parse_result parser::expression()
 {
-	return equality();
+	return comma();
 }
 
+// comma -> equality ( "," equality )*
+// NOTE: In future, when implement function, there will be comma in foo(a, b), seperating parameters, not comma operator.
+//       In that case, parse logic for function parameters will call assignment() or equality() to avoid comma being misunderstood
+//            as a single expression.
+parser::parse_result parser::comma()
+{
+	parse_result equality_res{ equality() };
+	if ( equality_res.is_err() )
+		return equality_res;
+
+	expr ex{ std::move( equality_res.ok_data() ) };
+
+	while ( match( token::type::k_comma ) )
+	{
+		token op{ previous() };
+
+		parse_result right_res{ equality() };
+		if ( right_res.is_err() )
+			return right_res;
+		expr right{ std::move( right_res.ok_data() ) };
+
+		ex = expr{
+			std::make_unique<binary_expr>(
+				std::move( ex ),
+				std::move( op ),
+				std::move( right ) ) };
+	}
+
+	return parse_result::ok( std::move( ex ) );
+}
+
+// equality -> comparision ( ( "!=" | "==" ) comparision )*
 parser::parse_result parser::equality()
 {
 	parse_result comparision_res{ comparision() };
@@ -78,7 +111,7 @@ parser::parse_result parser::equality()
 	{
 		token op{ previous() };
 
-		auto right_res{ comparision() };
+		parse_result right_res{ comparision() };
 		if ( right_res.is_err() )
 			return right_res;
 		expr right{ std::move( right_res.ok_data() ) };
@@ -93,6 +126,7 @@ parser::parse_result parser::equality()
 	return parse_result::ok( std::move( ex ) );
 }
 
+// comparison → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
 parser::parse_result parser::comparision()
 {
 	parse_result term_res{ term() };
@@ -123,6 +157,7 @@ parser::parse_result parser::comparision()
 	return parse_result::ok( std::move( ex ) );
 }
 
+// term → factor ( ( "-" | "+" ) factor )* ;
 parser::parse_result parser::term()
 {
 	parse_result factor_res{ factor() };
@@ -154,6 +189,7 @@ parser::parse_result parser::term()
 	return parse_result::ok( std::move( ex ) );
 }
 
+// factor → unary ( ( "/" | "*" ) unary )* ;
 parser::parse_result parser::factor()
 {
 	parse_result unary_res{ unary() };
@@ -185,6 +221,8 @@ parser::parse_result parser::factor()
 	return parse_result::ok( std::move( ex ) );
 }
 
+// unary → ( "!" | "-" ) unary
+// 			| primary
 parser::parse_result parser::unary()
 {
 	token::type unary_ttypes[]{
@@ -208,6 +246,8 @@ parser::parse_result parser::unary()
 	return primary();
 }
 
+// primary → NUMBER | STRING | "true" | "false" | "nil"
+// 			  | "(" expression ")";
 parser::parse_result parser::primary()
 {
 	if ( match( token::type::k_false ) )
@@ -223,24 +263,20 @@ parser::parse_result parser::primary()
 			std::make_unique<literal_expr>( literal{ "nil" } ) } );
 
 	if ( match( token::type::k_number ) )
-	{
 		return parse_result::ok( expr{
 			std::make_unique<literal_expr>( previous().literal().value() ) } );
-	}
 
 	if ( match( token::type::k_string ) )
-	{
 		return parse_result::ok( expr{
 			std::make_unique<literal_expr>( previous().literal().value() ) } );
-	}
 
 	if ( match( token::type::k_left_paren ) )
 	{
-		auto expr_result = expression();
+		parse_result expr_result{ expression() };
 		if ( expr_result.is_err() )
 			return expr_result;
 
-		auto consume_result{
+		consume_result consume_result{
 			consume( token::type::k_right_paren, "Expect ')' after expression" ) };
 		if ( consume_result.is_err() )
 			return parse_result::err(

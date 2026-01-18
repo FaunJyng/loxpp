@@ -101,7 +101,7 @@ void lox::run( std::string_view source )
 		if ( expr_opt.has_value() )
 		{
 			ast_printer ast_printer{};
-			utils::println( ast_printer.print( expr_opt.value() ) );
+			utils::println( "\x1b[33m", ast_printer.print( expr_opt.value() ), "\x1b[0m" );
 		}
 		else
 			return;
