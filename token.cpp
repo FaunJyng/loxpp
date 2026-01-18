@@ -4,8 +4,10 @@
 
 // token::type
 
-std::ostream& operator<<( std::ostream& os, const token::type& token_type ) {
-	switch ( token_type ) {
+std::ostream& operator<<( std::ostream& os, const token::type& token_type )
+{
+	switch ( token_type )
+	{
 		case token::type::k_left_paren:
 			return os << "left_paren";
 		case token::type::k_right_paren:
@@ -28,6 +30,10 @@ std::ostream& operator<<( std::ostream& os, const token::type& token_type ) {
 			return os << "slash";
 		case token::type::k_star:
 			return os << "star";
+		case token::type::k_question:
+			return os << "question";
+		case token::type::k_colon:
+			return os << "colon";
 		case token::type::k_bang:
 			return os << "bang";
 		case token::type::k_bang_equal:
@@ -88,12 +94,15 @@ std::ostream& operator<<( std::ostream& os, const token::type& token_type ) {
 	return os << "unknown";
 }
 
-std::ostream& operator<<( std::ostream& os, const token& token ) {
+std::ostream& operator<<( std::ostream& os, const token& token )
+{
 	os << token.ttype() << " " << token.lexeme() << " ";
 
-	if ( token.literal().has_value() ) {
+	if ( token.literal().has_value() )
+	{
 		std::visit(
-			[ & ]( const auto& v ) {
+			[ & ]( const auto& v )
+			{
 				os << v;
 			},
 			token.literal()->value() );

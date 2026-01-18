@@ -26,6 +26,7 @@ public:
 	std::string operator()( const std::unique_ptr<unary_expr>& e ) const override;
 	std::string operator()( const std::unique_ptr<grouping_expr>& e ) const override;
 	std::string operator()( const std::unique_ptr<literal_expr>& e ) const override;
+	std::string operator()( const std::unique_ptr<conditional_expr>& e ) const override;
 
 	static std::string print( const expr& e )
 	{

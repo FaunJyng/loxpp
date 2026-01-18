@@ -52,6 +52,12 @@ void scanner::scan_token()
 		case '*':
 			add_token( token::type::k_star );
 			break;
+		case '?':
+			add_token( token::type::k_question );
+			break;
+		case ':':
+			add_token( token::type::k_colon );
+			break;
 		case '!':
 			add_token( match( '=' ) ? token::type::k_bang_equal : token::type::k_bang );
 			break;

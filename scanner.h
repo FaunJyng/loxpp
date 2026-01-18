@@ -23,6 +23,7 @@ public:
 		{ "nil", token::type::k_nil },
 		{ "or", token::type::k_or },
 		{ "print", token::type::k_print },
+		{ "question", token::type::k_question },
 		{ "return", token::type::k_return },
 		{ "super", token::type::k_super },
 		{ "this", token::type::k_this },

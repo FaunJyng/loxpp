@@ -35,6 +35,7 @@ private:
 
 	parse_result expression();
 	parse_result comma();
+	parse_result conditional();
 	parse_result equality();
 	parse_result comparision();
 	parse_result term();

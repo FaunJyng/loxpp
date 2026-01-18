@@ -64,23 +64,23 @@ parser::parse_result parser::expression()
 	return comma();
 }
 
-// comma -> equality ( "," equality )*
+// comma -> conditional ( "," conditional )*
 // NOTE: In future, when implement function, there will be comma in foo(a, b), seperating parameters, not comma operator.
 //       In that case, parse logic for function parameters will call assignment() or equality() to avoid comma being misunderstood
 //            as a single expression.
 parser::parse_result parser::comma()
 {
-	parse_result equality_res{ equality() };
-	if ( equality_res.is_err() )
-		return equality_res;
+	parse_result conditional_res{ conditional() };
+	if ( conditional_res.is_err() )
+		return conditional_res;
 
-	expr ex{ std::move( equality_res.ok_data() ) };
+	expr ex{ std::move( conditional_res.ok_data() ) };
 
 	while ( match( token::type::k_comma ) )
 	{
 		token op{ previous() };
 
-		parse_result right_res{ equality() };
+		parse_result right_res{ conditional() };
 		if ( right_res.is_err() )
 			return right_res;
 		expr right{ std::move( right_res.ok_data() ) };
@@ -90,6 +90,38 @@ parser::parse_result parser::comma()
 				std::move( ex ),
 				std::move( op ),
 				std::move( right ) ) };
+	}
+
+	return parse_result::ok( std::move( ex ) );
+}
+
+// conditional -> equality ( "?" expression ":" conditional )? ;
+parser::parse_result parser::conditional()
+{
+	parse_result equality_res{ equality() };
+	if ( equality_res.is_err() )
+		return equality_res;
+
+	expr ex{ std::move( equality_res.ok_data() ) };
+
+	if ( match( token::type::k_question ) )
+	{
+		parse_result then_res{ expression() };
+		if ( then_res.is_err() )
+			return then_res;
+
+		consume_result consume_res{ consume( token::type::k_colon, "Expect ':' after ternary condition." ) };
+		if ( consume_res.is_err() )
+			return parse_result::err( std::move( consume_res.err_data() ) );
+
+		parse_result else_res{ conditional() };
+		if ( else_res.is_err() )
+			return else_res;
+
+		ex = expr{ std::make_unique<conditional_expr>(
+			std::move( ex ),
+			std::move( then_res.ok_data() ),
+			std::move( else_res.ok_data() ) ) };
 	}
 
 	return parse_result::ok( std::move( ex ) );

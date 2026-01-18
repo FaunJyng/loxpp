@@ -23,6 +23,8 @@ public:
 		k_semicolon,
 		k_slash,
 		k_star,
+		k_question,
+		k_colon,
 		// one or two character tokens
 		k_bang,
 		k_bang_equal,

@@ -30,3 +30,8 @@ std::string ast_printer::operator()( const std::unique_ptr<literal_expr>& e ) co
 		},
 		e->m_literal->value() );
 }
+
+std::string ast_printer::operator()( const std::unique_ptr<conditional_expr>& e ) const
+{
+	return parenthesize( "?", e->m_condition, e->m_then, e->m_else );
+}
